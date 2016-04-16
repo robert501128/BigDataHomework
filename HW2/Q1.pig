@@ -31,8 +31,8 @@ id2008 = LOAD 'airflight/2008.csv' USING PigStorage(',') AS (
 group_2008 = group id2008 all;
 avg_2008 = foreach group_2008 generate AVG(id2008.ArrDelay), AVG(id2008.DepDelay), AVG(id2008.CarrierDelay), AVG(id2008.WeatherDelay), AVG(id2008.NASDelay), AVG(id2008.SecurityDelay), AVG(id2008.LateAircraftDelay);
 max_2008 = foreach group_2008 generate MAX(id2008.ArrDelay), MAX(id2008.DepDelay), MAX(id2008.CarrierDelay), MAX(id2008.WeatherDelay), MAX(id2008.NASDelay), MAX(id2008.SecurityDelay), MAX(id2008.LateAircraftDelay);
+STORE avg_2008 INTO '/user/s31wcp55/q1q2/id2008_avg' USING PigStorage (',');
 STORE max_2008 INTO '/user/s31wcp55/q1q2/id2008_max' USING PigStorage (',');
-STORE count_2008 INTO '/user/s31wcp55/q1q2/id2008_count' USING PigStorage (',');
 id2007 = LOAD 'airflight/2007.csv' USING PigStorage(',') AS (
  Year:int,
  Month:int,
