@@ -2,7 +2,7 @@ from pyspark.sql import SQLContext
 from pyspark.sql.types import *
 from pyspark.sql.functions import udf
 
-numFile = 3
+numFile = 21
 sqlContext = SQLContext(sc)
 dflist = []
 column_udf = udf(lambda name: 0 if name == 'NA' else int(name), IntegerType())
