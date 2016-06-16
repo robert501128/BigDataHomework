@@ -3,6 +3,10 @@ from pyspark.sql import SQLContext
 from pyspark.mllib.linalg import Vectors
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.classification import LogisticRegression
+from pyspark.ml import Pipeline
+from pyspark.ml.classification import DecisionTreeClassifier
+from pyspark.ml.feature import StringIndexer, VectorIndexer
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 
 sc = SparkContext(appName = "BigDataHW4")
 
@@ -42,13 +46,29 @@ testData = sqlContext.read.format('com.databricks.spark.csv').options(header='tr
 trainData = preprocess(trainData)
 testData = preprocess(testData)
 
+#Logistic Regression
 lr = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8)
 lrModel = lr.fit(trainData)
-prediction = lrmodel.transform(testData)
-selected = prediction.select("features", "label", "myProbability", "prediction")
-result=""
-for row in selected.collect():
-    result+=str(row)+'\n'
+lrprediction = lrModel.transform(testData)
+lrselected = lrprediction.select("probability").first().probability[0]
+result="Logistic Regression Accuracy:"+str(lrselected)+'\n'
+
+#Decision Tree Regression
+dataset = trainData.unionAll(testData)
+labelIndexer = StringIndexer(inputCol="label", outputCol="indexedLabel").fit(dataset)
+featureIndexer =\
+    VectorIndexer(inputCol="features", outputCol="indexedFeatures", maxCategories=4).fit(dataset)
+# Train a DecisionTree model.
+dt = DecisionTreeClassifier(labelCol="indexedLabel", featuresCol="indexedFeatures")
+# Chain indexers and tree in a Pipeline
+pipeline = Pipeline(stages=[labelIndexer, featureIndexer, dt])
+# Train model.  This also runs the indexers.
+dcmodel = pipeline.fit(trainData)
+# Make predictions.
+dcprediction = dcmodel.transform(testData)
+dcselected = dcprediction.select("probability").first().probability[0]
+result+="Decision Tree Accuracy:"+str(dcselected)+'\n'
+
 
 file = open("result.txt", "w")
 file.write(result)
